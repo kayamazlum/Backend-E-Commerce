@@ -1,5 +1,6 @@
 const Product = require("../models/product");
 const ProductFilter = require("../utils/productFilter");
+const cloudinary = require("cloudinary");
 
 //user
 const allProducts = async (req, res) => {
@@ -26,6 +27,27 @@ const detailProducts = async (req, res) => {
 
 //admin
 const createProduct = async (req, res) => {
+  let images = [];
+  if (typeof req.body.images === "string") {
+    images.push(req.body.images);
+  } else {
+    images = req.body.images;
+  }
+
+  let allImage = [];
+  for (let i = 0; i < images.length; i++) {
+    const result = await cloudinary.uploader.upload(images[i], {
+      folder: "products",
+    });
+
+    allImage.push({
+      public_id: result.public_id,
+      url: result.secure_url,
+    });
+  }
+
+  req.body.images = allImage;
+
   const product = await Product.create(req.body);
 
   res.status(201).json({
@@ -36,7 +58,11 @@ const createProduct = async (req, res) => {
 const deleteProduct = async (req, res) => {
   const product = await Product.findById(req.params.id);
 
-  product.remove();
+  for (let i = 0; i < product.images.length; i++) {
+    await cloudinary.uploader.destroy(product.images[i].public_id);
+  }
+
+  await product.remove();
 
   res.status(200).json({
     message: "Ürün başarıyla silindi...",

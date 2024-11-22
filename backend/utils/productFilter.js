@@ -8,8 +8,8 @@ class ProductFilter {
     const keyword = this.queryStr.keyword
       ? {
           name: {
-            $regex: this.queryStr.keyword,
-            $options: "i",
+            $regex: this.queryStr.keyword, // arama yapılacak kelime
+            $options: "i", // büyük-küçük harfe duyarsız
           },
         }
       : {};
@@ -37,3 +37,5 @@ class ProductFilter {
 }
 
 module.exports = ProductFilter;
+
+//bu sayfaya tekrar bak
