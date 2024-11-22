@@ -26,7 +26,7 @@ const detailProducts = async (req, res) => {
 };
 
 //admin
-const createProduct = async (req, res) => {
+const createProduct = async (req, res, next) => {
   let images = [];
   if (typeof req.body.images === "string") {
     //tekrar et console log yap req.body.images
@@ -56,7 +56,7 @@ const createProduct = async (req, res) => {
   });
 };
 
-const deleteProduct = async (req, res) => {
+const deleteProduct = async (req, res, next) => {
   const product = await Product.findById(req.params.id);
   //tekrar et console log yap
   for (let i = 0; i < product.images.length; i++) {
@@ -73,7 +73,7 @@ const deleteProduct = async (req, res) => {
   });
 };
 
-const updateProduct = async (req, res) => {
+const updateProduct = async (req, res, next) => {
   const product = await Product.findById(req.params.id);
 
   let images = [];
@@ -112,10 +112,36 @@ const updateProduct = async (req, res) => {
   });
 };
 
+const createReview = async (req, res, next) => {
+  const { productId, comment, rating } = req.body;
+
+  const review = {
+    user: req.user._id,
+    name: req.user.name,
+    comment,
+    rating: Number(rating),
+  };
+
+  const product = await Product.findById(productId);
+
+  product.reviews.push(review);
+
+  let avg = 0;
+  product.reviews.forEach((rev) => {
+    avg += rev.rating;
+  });
+  product.rating = avg / product.reviews.length;
+
+  await product.save({ validateBeforeSave: false });
+
+  res.status(200).json({ message: "Yorum başarıyla eklendi..." });
+};
+
 module.exports = {
   allProducts,
   detailProducts,
   createProduct,
   deleteProduct,
   updateProduct,
+  createReview,
 };
