@@ -18,6 +18,13 @@ const allProducts = async (req, res) => {
   });
 };
 
+const adminProducts = async (req, res, next) => {
+  const products = await Product.find();
+  res.status(200).json({
+    products,
+  });
+};
+
 const detailProducts = async (req, res) => {
   const product = await Product.findById(req.params.id);
   res.status(200).json({
@@ -144,4 +151,5 @@ module.exports = {
   deleteProduct,
   updateProduct,
   createReview,
+  adminProducts,
 };
