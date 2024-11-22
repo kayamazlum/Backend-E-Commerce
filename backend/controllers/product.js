@@ -1,6 +1,6 @@
 const Product = require("../models/product");
 const ProductFilter = require("../utils/productFilter");
-const cloudinary = require("cloudinary");
+const cloudinary = require("cloudinary").v2;
 
 //user
 const allProducts = async (req, res) => {
@@ -29,6 +29,7 @@ const detailProducts = async (req, res) => {
 const createProduct = async (req, res) => {
   let images = [];
   if (typeof req.body.images === "string") {
+    //tekrar et console log yap req.body.images
     images.push(req.body.images);
   } else {
     images = req.body.images;
@@ -57,9 +58,12 @@ const createProduct = async (req, res) => {
 
 const deleteProduct = async (req, res) => {
   const product = await Product.findById(req.params.id);
-
+  //tekrar et console log yap
   for (let i = 0; i < product.images.length; i++) {
-    await cloudinary.uploader.destroy(product.images[i].public_id);
+    const imageTest = await cloudinary.uploader.destroy(
+      product.images[i].public_id
+    );
+    //log et
   }
 
   await product.remove();
@@ -71,8 +75,37 @@ const deleteProduct = async (req, res) => {
 
 const updateProduct = async (req, res) => {
   const product = await Product.findById(req.params.id);
+
+  let images = [];
+  if (typeof req.body.images === "string") {
+    images.push(req.body.images);
+  } else {
+    images = req.body.images;
+  }
+
+  if (images !== undefined) {
+    for (let i = 0; i < images.length; i++) {
+      await cloudinary.uploader.destroy(product.images[i].public_id);
+    }
+  }
+
+  let allImage = [];
+  for (let i = 0; i < images.length; i++) {
+    const result = await cloudinary.uploader.upload(images[i], {
+      folder: "products",
+    });
+
+    allImage.push({
+      public_id: result.public_id,
+      url: result.secure_url,
+    });
+  }
+
+  req.body.images = allImage;
+
   product = await Product.findByIdAndUpdate(req.params.id, req.body, {
     new: true,
+    runValidators: true,
   });
   res.status(201).json({
     message: "Ürün başarıyla güncellendi.",
