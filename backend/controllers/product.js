@@ -6,7 +6,7 @@ const cloudinary = require("cloudinary").v2;
 const allProducts = async (req, res) => {
   const resultPerPage = 10;
 
-  const productFilter = new ProductFilter(Product.find(), req.query)
+  const productFilter = new ProductFilter(await Product.find(), req.query)
     .search()
     .filter()
     .pagination(resultPerPage);
